@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sirah SmartChat - Embed Demo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 60px 20px;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #0d9488;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+    
+    .card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+      color: #1f2937;
+    }
+    
+    .card ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .card li {
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .card li:last-child {
+      border-bottom: none;
+    }
+    
+    code {
+      background: #f3f4f6;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    
+    pre {
+      background: #1f2937;
+      color: #e5e7eb;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+    
+    pre code {
+      background: none;
+      padding: 0;
+    }
+    
+    .badge {
+      display: inline-block;
+      background: #0d9488;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    .hint {
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 2rem;
+    }
+    
+    .hint p {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <span class="badge">Embed Demo</span>
+    <h1>Sirah SmartChat</h1>
+    <p>This page demonstrates the embeddable chat widget. Click the chat bubble in the bottom-right corner to try it!</p>
+    
+    <div class="card">
+      <h2>🦷 Demo Business: Bright Smile Dental</h2>
+      <ul>
+        <li><strong>Location:</strong> Chennai, Tamil Nadu</li>
+        <li><strong>Hours:</strong> Mon-Sat, 9 AM to 8 PM</li>
+        <li><strong>Services:</strong> Dental Checkup, Cleaning, Root Canal, Braces, Implants</li>
+      </ul>
+    </div>
+    
+    <div class="card">
+      <h2>💬 Try These Questions</h2>
+      <ul>
+        <li>"What are your timings?"</li>
+        <li>"Do you treat children?"</li>
+        <li>"I want to book an appointment"</li>
+        <li>"How much does a checkup cost?"</li>
+        <li>"Where are you located?"</li>
+      </ul>
+    </div>
+    
+    <div class="card">
+      <h2>🌐 Toggle Language</h2>
+      <p style="margin-bottom: 0;">Click the globe icon in the chat header to switch between English and Tamil.</p>
+    </div>
+    
+    <div class="card">
+      <h2>📋 Embed Code</h2>
+      <p style="margin-bottom: 0;">Add this to any HTML page:</p>
+      <pre><code>&lt;script 
+  src="https://your-domain.com/embed/sirah-smartchat.js"
+  data-config="/client-config.json"
+  data-business="/business_info.json"&gt;
+&lt;/script&gt;</code></pre>
+    </div>
+    
+    <div class="hint">
+      <p>💡 <strong>Tip:</strong> The widget loads configuration from JSON files. Replace them with your own business data to customize!</p>
+    </div>
+  </div>
+
+  <!-- Sirah SmartChat Embed -->
+  <script 
+    src="./sirah-smartchat.js"
+    data-config="/client-config.json"
+    data-business="/business_info.json">
+  </script>
+</body>
+</html>
