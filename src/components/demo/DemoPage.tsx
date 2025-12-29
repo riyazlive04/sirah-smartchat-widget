@@ -155,18 +155,66 @@ export function DemoPage() {
           </p>
         </div>
 
-        <div className="bg-foreground/5 rounded-2xl p-6 font-mono text-sm overflow-x-auto">
-          <pre className="text-muted-foreground">
-{`<!-- Add to your HTML -->
-<script src="https://your-domain.com/sirah-smartchat.js"></script>
+        <div className="space-y-6">
+          <div className="bg-card rounded-2xl border border-border p-6">
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary font-bold">1</span>
+              Script Tag (Recommended)
+            </h3>
+            <div className="bg-foreground/5 rounded-xl p-4 font-mono text-sm overflow-x-auto">
+              <pre className="text-muted-foreground whitespace-pre-wrap">
+{`<script 
+  src="https://your-domain.com/embed/sirah-smartchat.js"
+  data-config="/client-config.json"
+  data-business="/business_info.json">
+</script>`}
+              </pre>
+            </div>
+          </div>
 
-<!-- Or use iframe -->
-<iframe 
-  src="https://your-domain.com/chat" 
-  style="position:fixed; bottom:20px; right:20px; 
-         width:380px; height:520px; border:none;"
+          <div className="bg-card rounded-2xl border border-border p-6">
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary font-bold">2</span>
+              iFrame Embed
+            </h3>
+            <div className="bg-foreground/5 rounded-xl p-4 font-mono text-sm overflow-x-auto">
+              <pre className="text-muted-foreground whitespace-pre-wrap">
+{`<iframe 
+  src="https://your-domain.com/embed/demo.html" 
+  style="position:fixed; bottom:0; right:0; 
+         width:400px; height:100vh; border:none; 
+         z-index:9999;"
 ></iframe>`}
-          </pre>
+              </pre>
+            </div>
+          </div>
+
+          <div className="bg-card rounded-2xl border border-border p-6">
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary font-bold">3</span>
+              JavaScript API
+            </h3>
+            <div className="bg-foreground/5 rounded-xl p-4 font-mono text-sm overflow-x-auto">
+              <pre className="text-muted-foreground whitespace-pre-wrap">
+{`// Open chat programmatically
+SirahSmartChat.open();
+
+// Close chat
+SirahSmartChat.close();`}
+              </pre>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <a 
+            href="/embed/demo.html" 
+            target="_blank"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
+          >
+            View Standalone Demo
+            <span>→</span>
+          </a>
         </div>
       </section>
 
