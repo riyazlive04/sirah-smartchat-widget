@@ -1,0 +1,108 @@
+{
+  "businessName": "Bright Smile Dental Clinic",
+  "businessType": "Dental Clinic",
+  "tagline": "Your smile, our priority",
+  "location": "123 Anna Salai, Chennai, Tamil Nadu 600002",
+  "phone": "+91 98765 43210",
+  "email": "hello@brightsmile.in",
+  "website": "https://brightsmile.in",
+  "workingHours": {
+    "en": "Monday to Saturday, 9:00 AM to 8:00 PM. Closed on Sundays.",
+    "ta": "திங்கள் முதல் சனி வரை, காலை 9 மணி முதல் இரவு 8 மணி வரை. ஞாயிற்றுக்கிழமை விடுமுறை."
+  },
+  "services": [
+    {
+      "name": { "en": "Dental Checkup", "ta": "பல் பரிசோதனை" },
+      "description": { "en": "Comprehensive oral examination and cleaning", "ta": "விரிவான வாய் பரிசோதனை மற்றும் சுத்தம்" }
+    },
+    {
+      "name": { "en": "Teeth Cleaning", "ta": "பல் சுத்தம்" },
+      "description": { "en": "Professional scaling and polishing", "ta": "தொழில்முறை அளவிடுதல் மற்றும் பாலிஷிங்" }
+    },
+    {
+      "name": { "en": "Root Canal Treatment", "ta": "வேர் கால்வாய் சிகிச்சை" },
+      "description": { "en": "Pain-free root canal therapy", "ta": "வலியில்லா வேர் கால்வாய் சிகிச்சை" }
+    },
+    {
+      "name": { "en": "Braces & Aligners", "ta": "பிரேசஸ் & அலைனர்கள்" },
+      "description": { "en": "Orthodontic treatments for perfect alignment", "ta": "சரியான சீரமைப்புக்கான ஆர்த்தோடோன்டிக் சிகிச்சைகள்" }
+    },
+    {
+      "name": { "en": "Dental Implants", "ta": "பல் உள்வைப்புகள்" },
+      "description": { "en": "Permanent tooth replacement solutions", "ta": "நிரந்தர பல் மாற்று தீர்வுகள்" }
+    },
+    {
+      "name": { "en": "Pediatric Dentistry", "ta": "குழந்தை பல் மருத்துவம்" },
+      "description": { "en": "Gentle dental care for children", "ta": "குழந்தைகளுக்கான மென்மையான பல் பராமரிப்பு" }
+    },
+    {
+      "name": { "en": "Teeth Whitening", "ta": "பல் வெண்மையாக்குதல்" },
+      "description": { "en": "Professional whitening for a brighter smile", "ta": "பிரகாசமான புன்னகைக்கு தொழில்முறை வெண்மையாக்குதல்" }
+    }
+  ],
+  "doctors": [
+    {
+      "name": "Dr. Ananya Rao",
+      "specialization": { "en": "General Dentist & Clinic Director", "ta": "பொது பல் மருத்துவர் & கிளினிக் இயக்குனர்" },
+      "experience": "15 years"
+    },
+    {
+      "name": "Dr. Karthik Venkatesh",
+      "specialization": { "en": "Orthodontist", "ta": "ஆர்த்தோடான்டிஸ்ட்" },
+      "experience": "10 years"
+    }
+  ],
+  "faq": [
+    {
+      "q": { "en": "Do you take appointments?", "ta": "நீங்கள் முன்பதிவு எடுக்கிறீர்களா?" },
+      "a": { "en": "Yes, appointments are recommended to reduce waiting time. You can book online or call us directly.", "ta": "ஆம், காத்திருப்பு நேரத்தைக் குறைக்க முன்பதிவு பரிந்துரைக்கப்படுகிறது. நீங்கள் ஆன்லைனில் முன்பதிவு செய்யலாம் அல்லது நேரடியாக எங்களை அழைக்கலாம்." }
+    },
+    {
+      "q": { "en": "Do you treat children?", "ta": "நீங்கள் குழந்தைகளுக்கு சிகிச்சை அளிக்கிறீர்களா?" },
+      "a": { "en": "Yes, we have specialized pediatric dental services for children of all ages.", "ta": "ஆம், அனைத்து வயது குழந்தைகளுக்கும் சிறப்பு குழந்தை பல் சேவைகள் உள்ளன." }
+    },
+    {
+      "q": { "en": "What are your timings?", "ta": "உங்கள் நேரம் என்ன?" },
+      "a": { "en": "We are open Monday to Saturday, 9 AM to 8 PM. Closed on Sundays.", "ta": "திங்கள் முதல் சனி வரை காலை 9 மணி முதல் இரவு 8 மணி வரை திறந்திருக்கும். ஞாயிற்றுக்கிழமை மூடப்பட்டது." }
+    },
+    {
+      "q": { "en": "Is teeth cleaning painful?", "ta": "பல் சுத்தம் வலிக்குமா?" },
+      "a": { "en": "No, professional teeth cleaning is generally painless. You may feel slight sensitivity, but it's completely safe.", "ta": "இல்லை, தொழில்முறை பல் சுத்தம் பொதுவாக வலியில்லாதது. நீங்கள் சிறிது உணர்திறனை உணரலாம், ஆனால் இது முற்றிலும் பாதுகாப்பானது." }
+    },
+    {
+      "q": { "en": "Do you offer EMI options?", "ta": "EMI விருப்பங்களை வழங்குகிறீர்களா?" },
+      "a": { "en": "Yes, we offer flexible EMI options for major treatments. Please speak with our reception for details.", "ta": "ஆம், பெரிய சிகிச்சைகளுக்கு நெகிழ்வான EMI விருப்பங்களை வழங்குகிறோம். விவரங்களுக்கு எங்கள் வரவேற்பில் பேசுங்கள்." }
+    },
+    {
+      "q": { "en": "Where are you located?", "ta": "நீங்கள் எங்கே இருக்கிறீர்கள்?" },
+      "a": { "en": "We are located at 123 Anna Salai, Chennai, Tamil Nadu 600002. Easily accessible by public transport.", "ta": "சென்னை, தமிழ்நாடு 600002, 123 அண்ணா சாலையில் உள்ளோம். பொது போக்குவரத்தில் எளிதாக அணுகலாம்." }
+    },
+    {
+      "q": { "en": "How much does a dental checkup cost?", "ta": "பல் பரிசோதனை எவ்வளவு செலவாகும்?" },
+      "a": { "en": "A comprehensive dental checkup starts at ₹500. For specific treatment costs, please visit us for a consultation.", "ta": "விரிவான பல் பரிசோதனை ₹500 முதல் தொடங்குகிறது. குறிப்பிட்ட சிகிச்சை செலவுகளுக்கு, ஆலோசனைக்கு எங்களை சந்திக்கவும்." }
+    }
+  ],
+  "intents": {
+    "appointment": {
+      "keywords": ["appointment", "book", "schedule", "visit", "consultation", "முன்பதிவு", "சந்திப்பு"],
+      "response": {
+        "en": "I'd be happy to help you schedule an appointment! To proceed, I'll need a few details from you.",
+        "ta": "உங்களுக்கு சந்திப்பு நிர்ணயிக்க மகிழ்ச்சியாக உதவுவேன்! தொடர, உங்களிடமிருந்து சில விவரங்கள் தேவை."
+      }
+    },
+    "pricing": {
+      "keywords": ["price", "cost", "fee", "charge", "how much", "விலை", "செலவு", "கட்டணம்"],
+      "response": {
+        "en": "For accurate pricing information, our team can provide a detailed quote. Would you like us to contact you?",
+        "ta": "துல்லியமான விலை தகவலுக்கு, எங்கள் குழு விரிவான மேற்கோளை வழங்க முடியும். நாங்கள் உங்களைத் தொடர்பு கொள்ள விரும்புகிறீர்களா?"
+      }
+    },
+    "enquiry": {
+      "keywords": ["enquiry", "inquiry", "question", "know more", "information", "விசாரணை", "கேள்வி", "தகவல்"],
+      "response": {
+        "en": "I'm here to help with any questions! To provide you with personalized assistance, may I have your contact details?",
+        "ta": "எந்த கேள்விகளுக்கும் உதவ நான் இங்கே இருக்கிறேன்! தனிப்பயனாக்கப்பட்ட உதவியை வழங்க, உங்கள் தொடர்பு விவரங்களை பெறலாமா?"
+      }
+    }
+  }
+}

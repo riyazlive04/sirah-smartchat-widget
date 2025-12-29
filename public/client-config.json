@@ -1,0 +1,48 @@
+{
+  "botName": "Sirah SmartChat",
+  "language": "en",
+  "enableTamil": true,
+  "mode": "hybrid",
+  "requireConsent": true,
+  "googleFormEndpoint": "REPLACE_WITH_CLIENT_FORM_URL",
+  "theme": {
+    "primaryColor": "#0d9488",
+    "position": "bottom-right"
+  },
+  "welcomeMessage": {
+    "en": "Hi 👋 Welcome! How can I help you today?",
+    "ta": "வணக்கம் 👋 நான் எப்படி உதவலாம்?"
+  },
+  "labels": {
+    "en": {
+      "placeholder": "Type your message...",
+      "send": "Send",
+      "poweredBy": "Powered by Sirah SmartChat",
+      "consentTitle": "Before we continue",
+      "consentMessage": "We'd like to save your contact details to assist you better. Your information will be kept confidential.",
+      "consentAgree": "I agree",
+      "consentDecline": "No thanks",
+      "nameLabel": "Your Name",
+      "phoneLabel": "Phone Number",
+      "emailLabel": "Email (optional)",
+      "submitLead": "Submit",
+      "thankYou": "Thank you! We'll be in touch soon.",
+      "close": "Close"
+    },
+    "ta": {
+      "placeholder": "உங்கள் செய்தியை தட்டச்சு செய்யுங்கள்...",
+      "send": "அனுப்பு",
+      "poweredBy": "Sirah SmartChat மூலம் இயக்கப்படுகிறது",
+      "consentTitle": "தொடர்வதற்கு முன்",
+      "consentMessage": "உங்களுக்கு சிறப்பாக உதவ உங்கள் தொடர்பு விவரங்களைச் சேமிக்க விரும்புகிறோம். உங்கள் தகவல் ரகசியமாக வைக்கப்படும்.",
+      "consentAgree": "நான் ஒப்புக்கொள்கிறேன்",
+      "consentDecline": "வேண்டாம் நன்றி",
+      "nameLabel": "உங்கள் பெயர்",
+      "phoneLabel": "தொலைபேசி எண்",
+      "emailLabel": "மின்னஞ்சல் (விருப்பமானது)",
+      "submitLead": "சமர்ப்பி",
+      "thankYou": "நன்றி! விரைவில் தொடர்பு கொள்வோம்.",
+      "close": "மூடு"
+    }
+  }
+}
