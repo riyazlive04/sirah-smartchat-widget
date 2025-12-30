@@ -3,12 +3,15 @@ import { ChatBubble } from './ChatBubble';
 import { ChatWindow } from './ChatWindow';
 import { useChatConfig } from '@/hooks/useChatConfig';
 import { useChatbot } from '@/hooks/useChatbot';
-import type { ClientConfig } from '@/types/chat';
+import { useChatSounds } from '@/hooks/useChatSounds';
+import type { ClientConfig, Attachment } from '@/types/chat';
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const { config, businessInfo, loading, error } = useChatConfig();
   const [currentConfig, setCurrentConfig] = useState<ClientConfig | null>(null);
+  
+  const { isMuted, toggleMute, playMessageSent, playMessageReceived } = useChatSounds();
 
   // Use local config state to handle language changes
   const activeConfig = currentConfig || config;
@@ -20,9 +23,13 @@ export function ChatWidget() {
     sendMessage,
     handleConsent,
     initializeChat,
+    clearChat,
     labels,
     lang
-  } = useChatbot(activeConfig, businessInfo);
+  } = useChatbot(activeConfig, businessInfo, {
+    onMessageSent: playMessageSent,
+    onMessageReceived: playMessageReceived
+  });
 
   // Apply custom branding colors from config
   useEffect(() => {
@@ -67,6 +74,18 @@ export function ChatWidget() {
     });
   }, [config, activeConfig]);
 
+  const handleSendMessage = useCallback((message: string, attachments?: Attachment[]) => {
+    sendMessage(message, attachments);
+  }, [sendMessage]);
+
+  const handleClearChat = useCallback(() => {
+    clearChat();
+    // Re-initialize with welcome message after clearing
+    setTimeout(() => {
+      initializeChat();
+    }, 100);
+  }, [clearChat, initializeChat]);
+
   if (loading) {
     return (
       <div className="fixed bottom-6 right-6 z-50">
@@ -101,10 +120,13 @@ export function ChatWidget() {
         currentLang={lang}
         enableTamil={config.enableTamil}
         position={position}
+        isMuted={isMuted}
         onClose={toggleChat}
-        onSendMessage={sendMessage}
+        onSendMessage={handleSendMessage}
         onConsent={handleConsent}
         onToggleLanguage={toggleLanguage}
+        onToggleMute={toggleMute}
+        onClearChat={handleClearChat}
         onInit={initializeChat}
       />
     </>

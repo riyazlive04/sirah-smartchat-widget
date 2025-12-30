@@ -1,4 +1,4 @@
-import { X, Globe } from 'lucide-react';
+import { X, Globe, Trash2, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ChatHeaderProps {
@@ -6,8 +6,11 @@ interface ChatHeaderProps {
   businessName?: string;
   onClose: () => void;
   onToggleLanguage?: () => void;
+  onClearChat?: () => void;
+  onToggleMute?: () => void;
   currentLang?: 'en' | 'ta';
   enableTamil?: boolean;
+  isMuted?: boolean;
 }
 
 export function ChatHeader({ 
@@ -15,8 +18,11 @@ export function ChatHeader({
   businessName, 
   onClose, 
   onToggleLanguage,
+  onClearChat,
+  onToggleMute,
   currentLang,
-  enableTamil 
+  enableTamil,
+  isMuted = false
 }: ChatHeaderProps) {
   return (
     <div className="flex items-center justify-between px-4 py-3 bg-primary text-primary-foreground rounded-t-2xl">
@@ -32,7 +38,45 @@ export function ChatHeader({
         </div>
       </div>
       
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
+        {onToggleMute && (
+          <button
+            onClick={onToggleMute}
+            className={cn(
+              "w-8 h-8 rounded-full",
+              "bg-primary-foreground/20 hover:bg-primary-foreground/30",
+              "flex items-center justify-center",
+              "transition-colors duration-200",
+              "focus:outline-none focus:ring-2 focus:ring-primary-foreground/50"
+            )}
+            aria-label={isMuted ? "Unmute sounds" : "Mute sounds"}
+            title={isMuted ? "Unmute sounds" : "Mute sounds"}
+          >
+            {isMuted ? (
+              <VolumeX className="w-4 h-4" />
+            ) : (
+              <Volume2 className="w-4 h-4" />
+            )}
+          </button>
+        )}
+
+        {onClearChat && (
+          <button
+            onClick={onClearChat}
+            className={cn(
+              "w-8 h-8 rounded-full",
+              "bg-primary-foreground/20 hover:bg-primary-foreground/30",
+              "flex items-center justify-center",
+              "transition-colors duration-200",
+              "focus:outline-none focus:ring-2 focus:ring-primary-foreground/50"
+            )}
+            aria-label="Clear chat"
+            title="Clear chat history"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+
         {enableTamil && onToggleLanguage && (
           <button
             onClick={onToggleLanguage}

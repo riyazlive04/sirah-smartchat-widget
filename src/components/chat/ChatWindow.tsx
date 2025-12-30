@@ -4,7 +4,7 @@ import { ChatHeader } from './ChatHeader';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { ConsentPrompt } from './ConsentPrompt';
-import type { Message, Labels, ChatState } from '@/types/chat';
+import type { Message, Labels, ChatState, Attachment } from '@/types/chat';
 
 interface ChatWindowProps {
   isOpen: boolean;
@@ -17,10 +17,13 @@ interface ChatWindowProps {
   currentLang: 'en' | 'ta';
   enableTamil: boolean;
   position?: 'bottom-right' | 'bottom-left';
+  isMuted?: boolean;
   onClose: () => void;
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, attachments?: Attachment[]) => void;
   onConsent: (agreed: boolean) => void;
   onToggleLanguage: () => void;
+  onToggleMute?: () => void;
+  onClearChat?: () => void;
   onInit: () => void;
 }
 
@@ -35,10 +38,13 @@ export function ChatWindow({
   currentLang,
   enableTamil,
   position = 'bottom-right',
+  isMuted = false,
   onClose,
   onSendMessage,
   onConsent,
   onToggleLanguage,
+  onToggleMute,
+  onClearChat,
   onInit
 }: ChatWindowProps) {
   useEffect(() => {
@@ -71,15 +77,18 @@ export function ChatWindow({
         businessName={businessName}
         onClose={onClose}
         onToggleLanguage={onToggleLanguage}
+        onClearChat={onClearChat}
+        onToggleMute={onToggleMute}
         currentLang={currentLang}
         enableTamil={enableTamil}
+        isMuted={isMuted}
       />
       
       <MessageList 
         messages={messages} 
         isTyping={isTyping} 
         lang={currentLang}
-        onQuickReply={onSendMessage}
+        onQuickReply={(value) => onSendMessage(value)}
       />
       
       {showConsentPrompt ? (

@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { Message, ChatState, BusinessInfo, ClientConfig, LeadData, LocalizedString, QuickReply } from '@/types/chat';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import type { Message, ChatState, BusinessInfo, ClientConfig, LeadData, LocalizedString, QuickReply, Attachment } from '@/types/chat';
 import { useChatPersistence } from './useChatPersistence';
 
 function generateId(): string {
@@ -100,7 +100,28 @@ function generateFallbackResponse(businessInfo: BusinessInfo, lang: 'en' | 'ta')
   return `Thanks for reaching out to ${name}! I'm not sure I understood your question. Could you ask about our services, timings, or booking an appointment?`;
 }
 
-export function useChatbot(config: ClientConfig | null, businessInfo: BusinessInfo | null) {
+interface UseChatbotReturn {
+  messages: Message[];
+  chatState: ChatState;
+  isTyping: boolean;
+  sendMessage: (message: string, attachments?: Attachment[]) => void;
+  handleConsent: (agreed: boolean) => void;
+  initializeChat: () => void;
+  clearChat: () => void;
+  labels: any;
+  lang: 'en' | 'ta';
+  onMessageSent?: () => void;
+  onMessageReceived?: () => void;
+}
+
+export function useChatbot(
+  config: ClientConfig | null, 
+  businessInfo: BusinessInfo | null,
+  soundCallbacks?: {
+    onMessageSent?: () => void;
+    onMessageReceived?: () => void;
+  }
+): UseChatbotReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatState, setChatState] = useState<ChatState>('idle');
   const [pendingLead, setPendingLead] = useState<Partial<LeadData>>({});
@@ -108,7 +129,7 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
   const [leadField, setLeadField] = useState<'name' | 'phone' | 'email' | null>(null);
   const [initialized, setInitialized] = useState(false);
 
-  const { loadStoredData, saveData, parseStoredMessages } = useChatPersistence(businessInfo?.businessName);
+  const { loadStoredData, saveData, clearData, parseStoredMessages } = useChatPersistence(businessInfo?.businessName);
 
   const lang = config?.language || 'en';
   const labels = config?.labels[lang];
@@ -137,17 +158,26 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
     }
   }, [messages, chatState, pendingLead, leadField, initialized, saveData]);
 
-  const addMessage = useCallback((role: 'user' | 'bot', content: string, quickReplies?: QuickReply[]) => {
+  const addMessage = useCallback((role: 'user' | 'bot', content: string, quickReplies?: QuickReply[], attachments?: Attachment[]) => {
     const message: Message = {
       id: generateId(),
       role,
       content,
       timestamp: new Date(),
-      quickReplies
+      quickReplies,
+      attachments
     };
     setMessages(prev => [...prev, message]);
+    
+    // Trigger sound callbacks
+    if (role === 'user' && soundCallbacks?.onMessageSent) {
+      soundCallbacks.onMessageSent();
+    } else if (role === 'bot' && soundCallbacks?.onMessageReceived) {
+      soundCallbacks.onMessageReceived();
+    }
+    
     return message;
-  }, []);
+  }, [soundCallbacks]);
 
   const simulateTyping = useCallback(async (delay: number = 800) => {
     setIsTyping(true);
@@ -155,10 +185,10 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
     setIsTyping(false);
   }, []);
 
-  const processMessage = useCallback(async (userMessage: string) => {
+  const processMessage = useCallback(async (userMessage: string, attachments?: Attachment[]) => {
     if (!config || !businessInfo) return;
 
-    addMessage('user', userMessage);
+    addMessage('user', userMessage, undefined, attachments);
     await simulateTyping();
 
     // Handle lead collection flow
@@ -208,6 +238,15 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
         }
         return;
       }
+    }
+
+    // Handle file attachments
+    if (attachments && attachments.length > 0) {
+      const response = lang === 'ta'
+        ? 'உங்கள் கோப்பைப் பெற்றுள்ளோம். எங்கள் குழு உங்களைத் தொடர்புகொள்ளும்.'
+        : 'Thanks for sharing! I\'ve received your files. Our team will review them.';
+      addMessage('bot', response, config.quickReplies);
+      return;
     }
 
     // Check for FAQ match
@@ -328,10 +367,18 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
     }
   }, [config, lang, messages.length, addMessage]);
 
-  const sendMessage = useCallback((message: string) => {
-    if (!message.trim()) return;
-    processMessage(message.trim());
+  const sendMessage = useCallback((message: string, attachments?: Attachment[]) => {
+    if (!message.trim() && (!attachments || attachments.length === 0)) return;
+    processMessage(message.trim(), attachments);
   }, [processMessage]);
+
+  const clearChat = useCallback(() => {
+    setMessages([]);
+    setChatState('idle');
+    setPendingLead({});
+    setLeadField(null);
+    clearData();
+  }, [clearData]);
 
   return {
     messages,
@@ -340,6 +387,7 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
     sendMessage,
     handleConsent,
     initializeChat,
+    clearChat,
     labels,
     lang
   };

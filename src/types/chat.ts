@@ -90,12 +90,21 @@ export interface BusinessInfo {
   };
 }
 
+export interface Attachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'bot';
   content: string;
   timestamp: Date;
   quickReplies?: QuickReply[];
+  attachments?: Attachment[];
 }
 
 export interface LeadData {
