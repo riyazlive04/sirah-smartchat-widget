@@ -7,12 +7,32 @@
   "googleFormEndpoint": "REPLACE_WITH_CLIENT_FORM_URL",
   "theme": {
     "primaryColor": "#0d9488",
+    "secondaryColor": "#14b8a6",
+    "accentColor": "#2dd4bf",
     "position": "bottom-right"
   },
   "welcomeMessage": {
     "en": "Hi 👋 Welcome! How can I help you today?",
     "ta": "வணக்கம் 👋 நான் எப்படி உதவலாம்?"
   },
+  "quickReplies": [
+    {
+      "label": { "en": "📅 Book Appointment", "ta": "📅 சந்திப்பு" },
+      "value": "I want to book an appointment"
+    },
+    {
+      "label": { "en": "💰 Pricing Info", "ta": "💰 விலை தகவல்" },
+      "value": "What are your prices?"
+    },
+    {
+      "label": { "en": "🕐 Working Hours", "ta": "🕐 நேரம்" },
+      "value": "What are your working hours?"
+    },
+    {
+      "label": { "en": "📍 Location", "ta": "📍 இருப்பிடம்" },
+      "value": "Where are you located?"
+    }
+  ],
   "labels": {
     "en": {
       "placeholder": "Type your message...",

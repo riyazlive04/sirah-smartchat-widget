@@ -1,3 +1,15 @@
+export interface ThemeConfig {
+  primaryColor: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  position: 'bottom-right' | 'bottom-left';
+}
+
+export interface QuickReply {
+  label: LocalizedString;
+  value: string;
+}
+
 export interface ClientConfig {
   botName: string;
   language: 'en' | 'ta';
@@ -5,14 +17,12 @@ export interface ClientConfig {
   mode: 'browser' | 'hybrid';
   requireConsent: boolean;
   googleFormEndpoint: string;
-  theme: {
-    primaryColor: string;
-    position: 'bottom-right' | 'bottom-left';
-  };
+  theme: ThemeConfig;
   welcomeMessage: {
     en: string;
     ta: string;
   };
+  quickReplies?: QuickReply[];
   labels: {
     en: Labels;
     ta: Labels;
@@ -85,6 +95,7 @@ export interface Message {
   role: 'user' | 'bot';
   content: string;
   timestamp: Date;
+  quickReplies?: QuickReply[];
 }
 
 export interface LeadData {

@@ -1,5 +1,6 @@
-import { useState, useCallback, useMemo } from 'react';
-import type { Message, ChatState, BusinessInfo, ClientConfig, LeadData, LocalizedString } from '@/types/chat';
+import { useState, useCallback, useEffect } from 'react';
+import type { Message, ChatState, BusinessInfo, ClientConfig, LeadData, LocalizedString, QuickReply } from '@/types/chat';
+import { useChatPersistence } from './useChatPersistence';
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
@@ -105,16 +106,44 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
   const [pendingLead, setPendingLead] = useState<Partial<LeadData>>({});
   const [isTyping, setIsTyping] = useState(false);
   const [leadField, setLeadField] = useState<'name' | 'phone' | 'email' | null>(null);
+  const [initialized, setInitialized] = useState(false);
+
+  const { loadStoredData, saveData, parseStoredMessages } = useChatPersistence(businessInfo?.businessName);
 
   const lang = config?.language || 'en';
   const labels = config?.labels[lang];
 
-  const addMessage = useCallback((role: 'user' | 'bot', content: string) => {
+  // Load persisted chat history on mount
+  useEffect(() => {
+    if (!initialized && businessInfo) {
+      const stored = loadStoredData();
+      if (stored) {
+        const restoredMessages = parseStoredMessages(stored);
+        if (restoredMessages.length > 0) {
+          setMessages(restoredMessages);
+          setChatState(stored.chatState);
+          setPendingLead(stored.pendingLead);
+          setLeadField(stored.leadField);
+        }
+      }
+      setInitialized(true);
+    }
+  }, [initialized, businessInfo, loadStoredData, parseStoredMessages]);
+
+  // Save chat history whenever state changes
+  useEffect(() => {
+    if (initialized && messages.length > 0) {
+      saveData(messages, chatState, pendingLead, leadField);
+    }
+  }, [messages, chatState, pendingLead, leadField, initialized, saveData]);
+
+  const addMessage = useCallback((role: 'user' | 'bot', content: string, quickReplies?: QuickReply[]) => {
     const message: Message = {
       id: generateId(),
       role,
       content,
-      timestamp: new Date()
+      timestamp: new Date(),
+      quickReplies
     };
     setMessages(prev => [...prev, message]);
     return message;
@@ -184,21 +213,21 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
     // Check for FAQ match
     const faqMatch = findFAQMatch(userMessage, businessInfo.faq, lang);
     if (faqMatch) {
-      addMessage('bot', faqMatch);
+      addMessage('bot', faqMatch, config.quickReplies);
       return;
     }
 
     // Check for service info
     const serviceMatch = findServiceInfo(userMessage, businessInfo.services, lang);
     if (serviceMatch) {
-      addMessage('bot', serviceMatch);
+      addMessage('bot', serviceMatch, config.quickReplies);
       return;
     }
 
     // Check for doctor info
     const doctorMatch = findDoctorInfo(userMessage, businessInfo.doctors, lang);
     if (doctorMatch) {
-      addMessage('bot', doctorMatch);
+      addMessage('bot', doctorMatch, config.quickReplies);
       return;
     }
 
@@ -219,14 +248,14 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
     // Handle working hours
     const hoursKeywords = ['timing', 'time', 'hour', 'open', 'close', 'when', 'நேரம்', 'திறப்பு'];
     if (hoursKeywords.some(k => normalizeText(userMessage).includes(k))) {
-      addMessage('bot', getLocalizedText(businessInfo.workingHours, lang));
+      addMessage('bot', getLocalizedText(businessInfo.workingHours, lang), config.quickReplies);
       return;
     }
 
     // Handle location
     const locationKeywords = ['where', 'location', 'address', 'direction', 'எங்கே', 'முகவரி'];
     if (locationKeywords.some(k => normalizeText(userMessage).includes(k))) {
-      addMessage('bot', businessInfo.location);
+      addMessage('bot', businessInfo.location, config.quickReplies);
       return;
     }
 
@@ -236,12 +265,12 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
       const response = lang === 'ta'
         ? `எங்களை தொடர்பு கொள்ளவும்:\n📞 ${businessInfo.phone}\n📧 ${businessInfo.email}`
         : `Contact us at:\n📞 ${businessInfo.phone}\n📧 ${businessInfo.email}`;
-      addMessage('bot', response);
+      addMessage('bot', response, config.quickReplies);
       return;
     }
 
     // Fallback response
-    addMessage('bot', generateFallbackResponse(businessInfo, lang));
+    addMessage('bot', generateFallbackResponse(businessInfo, lang), config.quickReplies);
   }, [config, businessInfo, chatState, leadField, labels, lang, addMessage, simulateTyping]);
 
   const submitLead = useCallback(async () => {
@@ -275,7 +304,7 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
     }
 
     setChatState('lead-submitted');
-    addMessage('bot', labels?.thankYou || 'Thank you! We\'ll be in touch soon.');
+    addMessage('bot', labels?.thankYou || 'Thank you! We\'ll be in touch soon.', config.quickReplies);
     setPendingLead({});
   }, [config, businessInfo, pendingLead, labels, addMessage]);
 
@@ -288,14 +317,14 @@ export function useChatbot(config: ClientConfig | null, businessInfo: BusinessIn
       const response = lang === 'ta'
         ? 'பரவாயில்லை! உங்கள் கேள்விகளுக்கு உதவ நான் இங்கே இருக்கிறேன்.'
         : 'No problem! I\'m here to help with any questions you have.';
-      addMessage('bot', response);
+      addMessage('bot', response, config?.quickReplies);
     }
-  }, [submitLead, lang, addMessage]);
+  }, [submitLead, lang, addMessage, config]);
 
   const initializeChat = useCallback(() => {
     if (config && messages.length === 0) {
       const welcomeMsg = getLocalizedText(config.welcomeMessage, lang);
-      addMessage('bot', welcomeMsg);
+      addMessage('bot', welcomeMsg, config.quickReplies);
     }
   }, [config, lang, messages.length, addMessage]);
 
