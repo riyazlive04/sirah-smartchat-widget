@@ -4,14 +4,16 @@ import { cn } from '@/lib/utils';
 interface ChatBubbleProps {
   isOpen: boolean;
   onClick: () => void;
+  position?: 'bottom-right' | 'bottom-left';
 }
 
-export function ChatBubble({ isOpen, onClick }: ChatBubbleProps) {
+export function ChatBubble({ isOpen, onClick, position = 'bottom-right' }: ChatBubbleProps) {
   return (
     <button
       onClick={onClick}
       className={cn(
-        "fixed bottom-6 right-6 z-50",
+        "fixed bottom-6 z-50",
+        position === 'bottom-right' ? 'right-6' : 'left-6',
         "w-14 h-14 rounded-full",
         "bg-primary text-primary-foreground",
         "shadow-widget hover:shadow-widget-hover",

@@ -16,6 +16,7 @@ interface ChatWindowProps {
   labels?: Labels;
   currentLang: 'en' | 'ta';
   enableTamil: boolean;
+  position?: 'bottom-right' | 'bottom-left';
   onClose: () => void;
   onSendMessage: (message: string) => void;
   onConsent: (agreed: boolean) => void;
@@ -33,6 +34,7 @@ export function ChatWindow({
   labels,
   currentLang,
   enableTamil,
+  position = 'bottom-right',
   onClose,
   onSendMessage,
   onConsent,
@@ -53,7 +55,8 @@ export function ChatWindow({
   return (
     <div
       className={cn(
-        "fixed bottom-24 right-6 z-50",
+        "fixed bottom-24 z-50",
+        position === 'bottom-right' ? 'right-6' : 'left-6',
         "w-[360px] max-w-[calc(100vw-48px)]",
         "h-[500px] max-h-[calc(100vh-120px)]",
         "bg-card rounded-2xl",
@@ -72,7 +75,12 @@ export function ChatWindow({
         enableTamil={enableTamil}
       />
       
-      <MessageList messages={messages} isTyping={isTyping} />
+      <MessageList 
+        messages={messages} 
+        isTyping={isTyping} 
+        lang={currentLang}
+        onQuickReply={onSendMessage}
+      />
       
       {showConsentPrompt ? (
         <ConsentPrompt
