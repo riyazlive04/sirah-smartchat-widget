@@ -13,7 +13,6 @@ export function ChatWidget() {
   
   const { isMuted, toggleMute, playMessageSent, playMessageReceived } = useChatSounds();
 
-  // Use local config state to handle language changes
   const activeConfig = currentConfig || config;
 
   const {
@@ -24,11 +23,12 @@ export function ChatWidget() {
     handleConsent,
     initializeChat,
     clearChat,
+    addReaction,
     labels,
     lang
   } = useChatbot(activeConfig, businessInfo, {
-    onMessageSent: playMessageSent,
-    onMessageReceived: playMessageReceived
+    onMessageSent: activeConfig?.features?.enableSounds !== false ? playMessageSent : undefined,
+    onMessageReceived: activeConfig?.features?.enableSounds !== false ? playMessageReceived : undefined
   });
 
   // Apply custom branding colors from config
@@ -37,7 +37,6 @@ export function ChatWidget() {
       const root = document.documentElement;
       
       if (config.theme.primaryColor) {
-        // Convert hex to HSL for CSS variables
         const hsl = hexToHSL(config.theme.primaryColor);
         if (hsl) {
           root.style.setProperty('--primary', hsl);
@@ -80,7 +79,6 @@ export function ChatWidget() {
 
   const handleClearChat = useCallback(() => {
     clearChat();
-    // Re-initialize with welcome message after clearing
     setTimeout(() => {
       initializeChat();
     }, 100);
@@ -100,6 +98,7 @@ export function ChatWidget() {
   }
 
   const position = config.theme?.position || 'bottom-right';
+  const features = config.features;
 
   return (
     <>
@@ -121,25 +120,24 @@ export function ChatWidget() {
         enableTamil={config.enableTamil}
         position={position}
         isMuted={isMuted}
+        features={features}
         onClose={toggleChat}
         onSendMessage={handleSendMessage}
         onConsent={handleConsent}
         onToggleLanguage={toggleLanguage}
-        onToggleMute={toggleMute}
+        onToggleMute={features?.enableSounds !== false ? toggleMute : undefined}
         onClearChat={handleClearChat}
+        onReaction={features?.enableReactions ? addReaction : undefined}
         onInit={initializeChat}
       />
     </>
   );
 }
 
-// Helper function to convert hex to HSL
 function hexToHSL(hex: string): string | null {
   try {
-    // Remove # if present
     hex = hex.replace(/^#/, '');
     
-    // Parse hex values
     const r = parseInt(hex.substring(0, 2), 16) / 255;
     const g = parseInt(hex.substring(2, 4), 16) / 255;
     const b = parseInt(hex.substring(4, 6), 16) / 255;

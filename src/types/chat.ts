@@ -5,10 +5,36 @@ export interface ThemeConfig {
   position: 'bottom-right' | 'bottom-left';
 }
 
+export interface FeatureToggles {
+  enableQuickReplies: boolean;
+  enableEmojiPicker: boolean;
+  enableReactions: boolean;
+  enableReadReceipts: boolean;
+  enableLeadScoring: boolean;
+  enableSounds: boolean;
+  enableAttachments: boolean;
+}
+
+export type IntentLevel = 'high' | 'medium' | 'low';
+
 export interface QuickReply {
   label: LocalizedString;
   value: string;
+  intent?: IntentLevel;
+  icon?: string;
 }
+
+export interface ConversationStage {
+  id: string;
+  quickReplies: QuickReply[];
+}
+
+export interface MessageReaction {
+  emoji: string;
+  count: number;
+}
+
+export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'read';
 
 export interface ClientConfig {
   botName: string;
@@ -18,11 +44,22 @@ export interface ClientConfig {
   requireConsent: boolean;
   googleFormEndpoint: string;
   theme: ThemeConfig;
+  features: FeatureToggles;
   welcomeMessage: {
     en: string;
     ta: string;
   };
   quickReplies?: QuickReply[];
+  conversationStages?: {
+    welcome: QuickReply[];
+    services: QuickReply[];
+    booking: QuickReply[];
+    general: QuickReply[];
+  };
+  qualifyingQuestions?: {
+    en: string;
+    ta: string;
+  };
   labels: {
     en: Labels;
     ta: Labels;
@@ -43,6 +80,9 @@ export interface Labels {
   submitLead: string;
   thankYou: string;
   close: string;
+  outsideHours?: string;
+  welcomeBack?: string;
+  qualifyingQuestion?: string;
 }
 
 export interface LocalizedString {
@@ -71,6 +111,13 @@ export interface Intent {
   response: LocalizedString;
 }
 
+export interface WorkingHoursConfig {
+  text: LocalizedString;
+  schedule: {
+    [key: string]: { open: string; close: string } | null; // null means closed
+  };
+}
+
 export interface BusinessInfo {
   businessName: string;
   businessType: string;
@@ -79,7 +126,7 @@ export interface BusinessInfo {
   phone: string;
   email: string;
   website: string;
-  workingHours: LocalizedString;
+  workingHours: LocalizedString | WorkingHoursConfig;
   services: Service[];
   doctors: Doctor[];
   faq: FAQ[];
@@ -105,6 +152,9 @@ export interface Message {
   timestamp: Date;
   quickReplies?: QuickReply[];
   attachments?: Attachment[];
+  status?: MessageStatus;
+  reactions?: MessageReaction[];
+  intentLevel?: IntentLevel;
 }
 
 export interface LeadData {
@@ -114,6 +164,25 @@ export interface LeadData {
   source: string;
   timestamp: string;
   businessName: string;
+  intentLevel?: IntentLevel;
+  serviceDiscussed?: string;
+  qualifyingAnswer?: string;
+  pageUrl?: string;
+  language?: string;
+  reactions?: string;
 }
 
-export type ChatState = 'idle' | 'collecting-lead' | 'consent-pending' | 'lead-submitted';
+export type ChatState = 
+  | 'idle' 
+  | 'qualifying'
+  | 'collecting-lead' 
+  | 'consent-pending' 
+  | 'lead-submitted';
+
+export interface LeadContext {
+  intentLevel: IntentLevel;
+  serviceDiscussed?: string;
+  qualifyingAnswer?: string;
+  highIntentCount: number;
+  reactions: Record<string, string[]>;
+}

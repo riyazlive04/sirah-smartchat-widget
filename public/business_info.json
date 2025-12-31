@@ -7,8 +7,19 @@
   "email": "hello@brightsmile.in",
   "website": "https://brightsmile.in",
   "workingHours": {
-    "en": "Monday to Saturday, 9:00 AM to 8:00 PM. Closed on Sundays.",
-    "ta": "திங்கள் முதல் சனி வரை, காலை 9 மணி முதல் இரவு 8 மணி வரை. ஞாயிற்றுக்கிழமை விடுமுறை."
+    "text": {
+      "en": "Monday to Saturday, 9:00 AM to 8:00 PM. Closed on Sundays.",
+      "ta": "திங்கள் முதல் சனி வரை, காலை 9 மணி முதல் இரவு 8 மணி வரை. ஞாயிற்றுக்கிழமை விடுமுறை."
+    },
+    "schedule": {
+      "monday": { "open": "09:00", "close": "20:00" },
+      "tuesday": { "open": "09:00", "close": "20:00" },
+      "wednesday": { "open": "09:00", "close": "20:00" },
+      "thursday": { "open": "09:00", "close": "20:00" },
+      "friday": { "open": "09:00", "close": "20:00" },
+      "saturday": { "open": "09:00", "close": "20:00" },
+      "sunday": null
+    }
   },
   "services": [
     {

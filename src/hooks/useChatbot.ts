@@ -1,6 +1,8 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import type { Message, ChatState, BusinessInfo, ClientConfig, LeadData, LocalizedString, QuickReply, Attachment } from '@/types/chat';
+import { useState, useCallback, useEffect } from 'react';
+import type { Message, ChatState, BusinessInfo, ClientConfig, LeadData, LocalizedString, QuickReply, Attachment, IntentLevel, LeadContext, MessageStatus, MessageReaction, WorkingHoursConfig } from '@/types/chat';
 import { useChatPersistence } from './useChatPersistence';
+import { useIntentDetection } from './useIntentDetection';
+import { useWorkingHours } from './useWorkingHours';
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
@@ -13,20 +15,6 @@ function getLocalizedText(text: LocalizedString | string, lang: 'en' | 'ta'): st
 
 function normalizeText(text: string): string {
   return text.toLowerCase().trim();
-}
-
-function detectLeadIntent(message: string, intents: BusinessInfo['intents']): 'appointment' | 'pricing' | 'enquiry' | null {
-  const normalized = normalizeText(message);
-  
-  for (const [intentName, intent] of Object.entries(intents)) {
-    for (const keyword of intent.keywords) {
-      if (normalized.includes(normalizeText(keyword))) {
-        return intentName as 'appointment' | 'pricing' | 'enquiry';
-      }
-    }
-  }
-  
-  return null;
 }
 
 function findFAQMatch(message: string, faqs: BusinessInfo['faq'], lang: 'en' | 'ta'): string | null {
@@ -100,18 +88,26 @@ function generateFallbackResponse(businessInfo: BusinessInfo, lang: 'en' | 'ta')
   return `Thanks for reaching out to ${name}! I'm not sure I understood your question. Could you ask about our services, timings, or booking an appointment?`;
 }
 
+function getWorkingHoursText(workingHours: LocalizedString | WorkingHoursConfig, lang: 'en' | 'ta'): string {
+  const wh = workingHours as any;
+  if (wh.text) {
+    return getLocalizedText(wh.text, lang);
+  }
+  return getLocalizedText(workingHours as LocalizedString, lang);
+}
+
 interface UseChatbotReturn {
   messages: Message[];
   chatState: ChatState;
   isTyping: boolean;
+  leadContext: LeadContext;
   sendMessage: (message: string, attachments?: Attachment[]) => void;
   handleConsent: (agreed: boolean) => void;
   initializeChat: () => void;
   clearChat: () => void;
+  addReaction: (messageId: string, emoji: string) => void;
   labels: any;
   lang: 'en' | 'ta';
-  onMessageSent?: () => void;
-  onMessageReceived?: () => void;
 }
 
 export function useChatbot(
@@ -126,13 +122,21 @@ export function useChatbot(
   const [chatState, setChatState] = useState<ChatState>('idle');
   const [pendingLead, setPendingLead] = useState<Partial<LeadData>>({});
   const [isTyping, setIsTyping] = useState(false);
-  const [leadField, setLeadField] = useState<'name' | 'phone' | 'email' | null>(null);
+  const [leadField, setLeadField] = useState<'qualifying' | 'name' | 'phone' | 'email' | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [leadContext, setLeadContext] = useState<LeadContext>({
+    intentLevel: 'low',
+    highIntentCount: 0,
+    reactions: {}
+  });
 
   const { loadStoredData, saveData, clearData, parseStoredMessages } = useChatPersistence(businessInfo?.businessName);
+  const { detectIntent, shouldTriggerLeadCapture } = useIntentDetection();
+  const { checkIfOpen, getOutsideHoursMessage } = useWorkingHours(businessInfo);
 
   const lang = config?.language || 'en';
   const labels = config?.labels[lang];
+  const features = config?.features;
 
   // Load persisted chat history on mount
   useEffect(() => {
@@ -158,16 +162,56 @@ export function useChatbot(
     }
   }, [messages, chatState, pendingLead, leadField, initialized, saveData]);
 
-  const addMessage = useCallback((role: 'user' | 'bot', content: string, quickReplies?: QuickReply[], attachments?: Attachment[]) => {
+  const getContextualQuickReplies = useCallback((stage: string): QuickReply[] => {
+    if (!config?.conversationStages) return config?.quickReplies || [];
+    
+    const stages = config.conversationStages as any;
+    return stages[stage] || stages.general || config.quickReplies || [];
+  }, [config]);
+
+  const addMessage = useCallback((
+    role: 'user' | 'bot', 
+    content: string, 
+    quickReplies?: QuickReply[], 
+    attachments?: Attachment[],
+    intentLevel?: IntentLevel
+  ) => {
     const message: Message = {
       id: generateId(),
       role,
       content,
       timestamp: new Date(),
       quickReplies,
-      attachments
+      attachments,
+      status: role === 'user' ? 'sent' : undefined,
+      intentLevel
     };
-    setMessages(prev => [...prev, message]);
+    
+    setMessages(prev => {
+      // Mark previous user messages as read
+      const updated = prev.map(m => 
+        m.role === 'user' && m.status !== 'read' 
+          ? { ...m, status: 'delivered' as MessageStatus } 
+          : m
+      );
+      return [...updated, message];
+    });
+    
+    // Update status to delivered after a short delay
+    if (role === 'user' && features?.enableReadReceipts) {
+      setTimeout(() => {
+        setMessages(prev => prev.map(m => 
+          m.id === message.id ? { ...m, status: 'delivered' as MessageStatus } : m
+        ));
+      }, 300);
+      
+      // Mark as read when bot responds
+      setTimeout(() => {
+        setMessages(prev => prev.map(m => 
+          m.id === message.id ? { ...m, status: 'read' as MessageStatus } : m
+        ));
+      }, 1000);
+    }
     
     // Trigger sound callbacks
     if (role === 'user' && soundCallbacks?.onMessageSent) {
@@ -177,7 +221,36 @@ export function useChatbot(
     }
     
     return message;
-  }, [soundCallbacks]);
+  }, [soundCallbacks, features]);
+
+  const addReaction = useCallback((messageId: string, emoji: string) => {
+    setMessages(prev => prev.map(m => {
+      if (m.id !== messageId) return m;
+      
+      const reactions = m.reactions || [];
+      const existingIdx = reactions.findIndex(r => r.emoji === emoji);
+      
+      let newReactions: MessageReaction[];
+      if (existingIdx >= 0) {
+        // Toggle off if already reacted
+        newReactions = reactions.filter((_, i) => i !== existingIdx);
+      } else {
+        // Add new reaction
+        newReactions = [...reactions, { emoji, count: 1 }];
+      }
+      
+      return { ...m, reactions: newReactions };
+    }));
+
+    // Track in lead context
+    setLeadContext(prev => ({
+      ...prev,
+      reactions: {
+        ...prev.reactions,
+        [messageId]: [...(prev.reactions[messageId] || []), emoji]
+      }
+    }));
+  }, []);
 
   const simulateTyping = useCallback(async (delay: number = 800) => {
     setIsTyping(true);
@@ -185,11 +258,45 @@ export function useChatbot(
     setIsTyping(false);
   }, []);
 
+  const startLeadCapture = useCallback(async (withQualifying: boolean = true) => {
+    if (withQualifying && config?.qualifyingQuestions) {
+      setChatState('qualifying');
+      setLeadField('qualifying');
+      const question = getLocalizedText(config.qualifyingQuestions, lang);
+      addMessage('bot', question);
+    } else {
+      setChatState('collecting-lead');
+      setLeadField('name');
+      addMessage('bot', labels?.nameLabel || 'May I have your name?');
+    }
+  }, [config, lang, labels, addMessage]);
+
   const processMessage = useCallback(async (userMessage: string, attachments?: Attachment[]) => {
     if (!config || !businessInfo) return;
 
-    addMessage('user', userMessage, undefined, attachments);
+    // Detect intent
+    const intent = detectIntent(userMessage, businessInfo);
+    
+    // Update lead context
+    if (intent.level === 'high') {
+      setLeadContext(prev => ({
+        ...prev,
+        intentLevel: 'high',
+        highIntentCount: prev.highIntentCount + 1
+      }));
+    }
+
+    addMessage('user', userMessage, undefined, attachments, intent.level);
     await simulateTyping();
+
+    // Handle qualifying question response
+    if (chatState === 'qualifying' && leadField === 'qualifying') {
+      setLeadContext(prev => ({ ...prev, qualifyingAnswer: userMessage }));
+      setChatState('collecting-lead');
+      setLeadField('name');
+      addMessage('bot', labels?.nameLabel || 'May I have your name?');
+      return;
+    }
 
     // Handle lead collection flow
     if (chatState === 'collecting-lead') {
@@ -233,7 +340,6 @@ export function useChatbot(
           setChatState('consent-pending');
           addMessage('bot', `${labels?.consentTitle}\n\n${labels?.consentMessage}`);
         } else {
-          // Auto-submit if consent not required
           await submitLead();
         }
         return;
@@ -245,56 +351,71 @@ export function useChatbot(
       const response = lang === 'ta'
         ? 'உங்கள் கோப்பைப் பெற்றுள்ளோம். எங்கள் குழு உங்களைத் தொடர்புகொள்ளும்.'
         : 'Thanks for sharing! I\'ve received your files. Our team will review them.';
-      addMessage('bot', response, config.quickReplies);
+      addMessage('bot', response, getContextualQuickReplies('general'));
       return;
     }
 
     // Check for FAQ match
     const faqMatch = findFAQMatch(userMessage, businessInfo.faq, lang);
     if (faqMatch) {
-      addMessage('bot', faqMatch, config.quickReplies);
+      addMessage('bot', faqMatch, getContextualQuickReplies('general'));
       return;
     }
 
     // Check for service info
     const serviceMatch = findServiceInfo(userMessage, businessInfo.services, lang);
     if (serviceMatch) {
-      addMessage('bot', serviceMatch, config.quickReplies);
+      setLeadContext(prev => ({ 
+        ...prev, 
+        serviceDiscussed: userMessage 
+      }));
+      addMessage('bot', serviceMatch, getContextualQuickReplies('services'));
       return;
     }
 
     // Check for doctor info
     const doctorMatch = findDoctorInfo(userMessage, businessInfo.doctors, lang);
     if (doctorMatch) {
-      addMessage('bot', doctorMatch, config.quickReplies);
+      addMessage('bot', doctorMatch, getContextualQuickReplies('general'));
       return;
     }
 
-    // Check for lead intent
-    const intent = detectLeadIntent(userMessage, businessInfo.intents);
-    if (intent) {
-      const intentResponse = getLocalizedText(businessInfo.intents[intent].response, lang);
-      addMessage('bot', intentResponse);
+    // Check if should trigger lead capture
+    if (features?.enableLeadScoring && shouldTriggerLeadCapture(intent.level, leadContext.highIntentCount, userMessage)) {
+      // Check working hours first
+      const hoursStatus = checkIfOpen();
       
-      // Start lead collection
-      setChatState('collecting-lead');
-      setLeadField('name');
-      await simulateTyping(500);
-      addMessage('bot', labels?.nameLabel || 'May I have your name?');
+      if (!hoursStatus.isOpen) {
+        const outsideMsg = getOutsideHoursMessage(lang);
+        addMessage('bot', outsideMsg);
+        await simulateTyping(500);
+      }
+      
+      // Get intent response if applicable
+      if (intent.type && businessInfo.intents[intent.type as keyof typeof businessInfo.intents]) {
+        const intentResponse = getLocalizedText(
+          businessInfo.intents[intent.type as keyof typeof businessInfo.intents].response, 
+          lang
+        );
+        addMessage('bot', intentResponse);
+        await simulateTyping(500);
+      }
+      
+      await startLeadCapture(true);
       return;
     }
 
     // Handle working hours
     const hoursKeywords = ['timing', 'time', 'hour', 'open', 'close', 'when', 'நேரம்', 'திறப்பு'];
     if (hoursKeywords.some(k => normalizeText(userMessage).includes(k))) {
-      addMessage('bot', getLocalizedText(businessInfo.workingHours, lang), config.quickReplies);
+      addMessage('bot', getWorkingHoursText(businessInfo.workingHours, lang), getContextualQuickReplies('general'));
       return;
     }
 
     // Handle location
     const locationKeywords = ['where', 'location', 'address', 'direction', 'எங்கே', 'முகவரி'];
     if (locationKeywords.some(k => normalizeText(userMessage).includes(k))) {
-      addMessage('bot', businessInfo.location, config.quickReplies);
+      addMessage('bot', businessInfo.location, getContextualQuickReplies('general'));
       return;
     }
 
@@ -304,13 +425,13 @@ export function useChatbot(
       const response = lang === 'ta'
         ? `எங்களை தொடர்பு கொள்ளவும்:\n📞 ${businessInfo.phone}\n📧 ${businessInfo.email}`
         : `Contact us at:\n📞 ${businessInfo.phone}\n📧 ${businessInfo.email}`;
-      addMessage('bot', response, config.quickReplies);
+      addMessage('bot', response, getContextualQuickReplies('general'));
       return;
     }
 
     // Fallback response
-    addMessage('bot', generateFallbackResponse(businessInfo, lang), config.quickReplies);
-  }, [config, businessInfo, chatState, leadField, labels, lang, addMessage, simulateTyping]);
+    addMessage('bot', generateFallbackResponse(businessInfo, lang), getContextualQuickReplies('welcome'));
+  }, [config, businessInfo, chatState, leadField, labels, lang, addMessage, simulateTyping, detectIntent, shouldTriggerLeadCapture, leadContext, features, getContextualQuickReplies, checkIfOpen, getOutsideHoursMessage, startLeadCapture]);
 
   const submitLead = useCallback(async () => {
     if (!config || !businessInfo) return;
@@ -321,7 +442,13 @@ export function useChatbot(
       email: pendingLead.email,
       source: 'Sirah SmartChat',
       timestamp: new Date().toISOString(),
-      businessName: businessInfo.businessName
+      businessName: businessInfo.businessName,
+      intentLevel: leadContext.intentLevel,
+      serviceDiscussed: leadContext.serviceDiscussed,
+      qualifyingAnswer: leadContext.qualifyingAnswer,
+      pageUrl: typeof window !== 'undefined' ? window.location.href : '',
+      language: lang,
+      reactions: JSON.stringify(leadContext.reactions)
     };
 
     // Submit to Google Form if configured
@@ -329,7 +456,7 @@ export function useChatbot(
       try {
         const formData = new FormData();
         Object.entries(leadData).forEach(([key, value]) => {
-          if (value) formData.append(key, value);
+          if (value) formData.append(key, String(value));
         });
 
         await fetch(config.googleFormEndpoint, {
@@ -343,9 +470,9 @@ export function useChatbot(
     }
 
     setChatState('lead-submitted');
-    addMessage('bot', labels?.thankYou || 'Thank you! We\'ll be in touch soon.', config.quickReplies);
+    addMessage('bot', labels?.thankYou || 'Thank you! We\'ll be in touch soon.', getContextualQuickReplies('general'));
     setPendingLead({});
-  }, [config, businessInfo, pendingLead, labels, addMessage]);
+  }, [config, businessInfo, pendingLead, labels, lang, leadContext, addMessage, getContextualQuickReplies]);
 
   const handleConsent = useCallback(async (agreed: boolean) => {
     if (agreed) {
@@ -356,16 +483,16 @@ export function useChatbot(
       const response = lang === 'ta'
         ? 'பரவாயில்லை! உங்கள் கேள்விகளுக்கு உதவ நான் இங்கே இருக்கிறேன்.'
         : 'No problem! I\'m here to help with any questions you have.';
-      addMessage('bot', response, config?.quickReplies);
+      addMessage('bot', response, getContextualQuickReplies('welcome'));
     }
-  }, [submitLead, lang, addMessage, config]);
+  }, [submitLead, lang, addMessage, getContextualQuickReplies]);
 
   const initializeChat = useCallback(() => {
     if (config && messages.length === 0) {
       const welcomeMsg = getLocalizedText(config.welcomeMessage, lang);
-      addMessage('bot', welcomeMsg, config.quickReplies);
+      addMessage('bot', welcomeMsg, getContextualQuickReplies('welcome'));
     }
-  }, [config, lang, messages.length, addMessage]);
+  }, [config, lang, messages.length, addMessage, getContextualQuickReplies]);
 
   const sendMessage = useCallback((message: string, attachments?: Attachment[]) => {
     if (!message.trim() && (!attachments || attachments.length === 0)) return;
@@ -377,6 +504,11 @@ export function useChatbot(
     setChatState('idle');
     setPendingLead({});
     setLeadField(null);
+    setLeadContext({
+      intentLevel: 'low',
+      highIntentCount: 0,
+      reactions: {}
+    });
     clearData();
   }, [clearData]);
 
@@ -384,10 +516,12 @@ export function useChatbot(
     messages,
     chatState,
     isTyping,
+    leadContext,
     sendMessage,
     handleConsent,
     initializeChat,
     clearChat,
+    addReaction,
     labels,
     lang
   };
