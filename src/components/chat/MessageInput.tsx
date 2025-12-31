@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect, type FormEvent, type ChangeEvent } from 'react';
-import { Send, Paperclip, X, FileText, Image } from 'lucide-react';
+import { Send, Paperclip, X, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Labels, Attachment } from '@/types/chat';
+import type { Labels, Attachment, FeatureToggles } from '@/types/chat';
+import { EmojiPicker } from './EmojiPicker';
 
 interface MessageInputProps {
   onSend: (message: string, attachments?: Attachment[]) => void;
   labels?: Labels;
   disabled?: boolean;
+  features?: FeatureToggles;
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'text/plain'];
 
 function generateId(): string {
@@ -22,7 +24,7 @@ function formatFileSize(bytes: number): string {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
-export function MessageInput({ onSend, labels, disabled }: MessageInputProps) {
+export function MessageInput({ onSend, labels, disabled, features }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +55,6 @@ export function MessageInput({ onSend, labels, disabled }: MessageInputProps) {
         continue;
       }
 
-      // Create local URL for preview
       const url = URL.createObjectURL(file);
       
       newAttachments.push({
@@ -66,10 +67,9 @@ export function MessageInput({ onSend, labels, disabled }: MessageInputProps) {
     }
 
     if (newAttachments.length > 0) {
-      setAttachments(prev => [...prev, ...newAttachments].slice(0, 3)); // Max 3 attachments
+      setAttachments(prev => [...prev, ...newAttachments].slice(0, 3));
     }
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -95,14 +95,15 @@ export function MessageInput({ onSend, labels, disabled }: MessageInputProps) {
     }
   };
 
+  const handleEmojiSelect = (emoji: string) => {
+    setMessage(prev => prev + emoji);
+    inputRef.current?.focus();
+  };
+
   const isImage = (type: string) => type.startsWith('image/');
 
   return (
-    <form 
-      onSubmit={handleSubmit} 
-      className="border-t border-border bg-card"
-    >
-      {/* Attachments preview */}
+    <form onSubmit={handleSubmit} className="border-t border-border bg-card">
       {attachments.length > 0 && (
         <div className="px-4 pt-3 flex flex-wrap gap-2">
           {attachments.map(attachment => (
@@ -150,7 +151,6 @@ export function MessageInput({ onSend, labels, disabled }: MessageInputProps) {
         </div>
       )}
 
-      {/* Error message */}
       {error && (
         <div className="px-4 pt-2">
           <p className="text-xs text-destructive">{error}</p>
@@ -159,33 +159,40 @@ export function MessageInput({ onSend, labels, disabled }: MessageInputProps) {
 
       <div className="p-4">
         <div className="flex items-center gap-2">
-          {/* File attachment button */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled || attachments.length >= 3}
-            className={cn(
-              "w-10 h-10 rounded-full",
-              "bg-secondary text-muted-foreground",
-              "flex items-center justify-center",
-              "transition-all duration-200",
-              "hover:bg-secondary/80 hover:text-foreground",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
-              "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            )}
-            aria-label="Attach file"
-          >
-            <Paperclip className="w-4 h-4" />
-          </button>
-          
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ALLOWED_TYPES.join(',')}
-            multiple
-            onChange={handleFileChange}
-            className="hidden"
-          />
+          {features?.enableAttachments !== false && (
+            <>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={disabled || attachments.length >= 3}
+                className={cn(
+                  "w-10 h-10 rounded-full",
+                  "bg-secondary text-muted-foreground",
+                  "flex items-center justify-center",
+                  "transition-all duration-200",
+                  "hover:bg-secondary/80 hover:text-foreground",
+                  "disabled:opacity-50 disabled:cursor-not-allowed",
+                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                )}
+                aria-label="Attach file"
+              >
+                <Paperclip className="w-4 h-4" />
+              </button>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ALLOWED_TYPES.join(',')}
+                multiple
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </>
+          )}
+
+          {features?.enableEmojiPicker !== false && (
+            <EmojiPicker onSelect={handleEmojiSelect} disabled={disabled} />
+          )}
 
           <input
             ref={inputRef}

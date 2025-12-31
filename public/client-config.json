@@ -11,26 +11,125 @@
     "accentColor": "#2dd4bf",
     "position": "bottom-right"
   },
+  "features": {
+    "enableQuickReplies": true,
+    "enableEmojiPicker": true,
+    "enableReactions": true,
+    "enableReadReceipts": true,
+    "enableLeadScoring": true,
+    "enableSounds": true,
+    "enableAttachments": true
+  },
   "welcomeMessage": {
     "en": "Hi 👋 Welcome! How can I help you today?",
     "ta": "வணக்கம் 👋 நான் எப்படி உதவலாம்?"
   },
+  "qualifyingQuestions": {
+    "en": "What brings you to us today - are you looking for a routine checkup or do you have a specific concern?",
+    "ta": "இன்று எங்களிடம் வந்தது ஏன் - வழக்கமான பரிசோதனை அல்லது குறிப்பிட்ட கவலை?"
+  },
+  "conversationStages": {
+    "welcome": [
+      {
+        "label": { "en": "📅 Book Appointment", "ta": "📅 சந்திப்பு" },
+        "value": "I want to book an appointment",
+        "intent": "high",
+        "icon": "📅"
+      },
+      {
+        "label": { "en": "🦷 Our Services", "ta": "🦷 சேவைகள்" },
+        "value": "What services do you offer?",
+        "intent": "medium",
+        "icon": "🦷"
+      },
+      {
+        "label": { "en": "💰 Pricing", "ta": "💰 விலை" },
+        "value": "What are your prices?",
+        "intent": "high",
+        "icon": "💰"
+      },
+      {
+        "label": { "en": "🕐 Timings", "ta": "🕐 நேரம்" },
+        "value": "What are your working hours?",
+        "intent": "low",
+        "icon": "🕐"
+      }
+    ],
+    "services": [
+      {
+        "label": { "en": "📅 Book Now", "ta": "📅 இப்போது முன்பதிவு" },
+        "value": "I want to book an appointment for this service",
+        "intent": "high",
+        "icon": "📅"
+      },
+      {
+        "label": { "en": "💰 How much?", "ta": "💰 எவ்வளவு?" },
+        "value": "How much does this cost?",
+        "intent": "high",
+        "icon": "💰"
+      },
+      {
+        "label": { "en": "🔙 Other Services", "ta": "🔙 பிற சேவைகள்" },
+        "value": "Show me other services",
+        "intent": "medium",
+        "icon": "🔙"
+      }
+    ],
+    "booking": [
+      {
+        "label": { "en": "✅ Yes, proceed", "ta": "✅ ஆம், தொடரவும்" },
+        "value": "Yes, I want to proceed with the booking",
+        "intent": "high",
+        "icon": "✅"
+      },
+      {
+        "label": { "en": "❓ More questions", "ta": "❓ மேலும் கேள்விகள்" },
+        "value": "I have more questions first",
+        "intent": "medium",
+        "icon": "❓"
+      }
+    ],
+    "general": [
+      {
+        "label": { "en": "📍 Location", "ta": "📍 இருப்பிடம்" },
+        "value": "Where are you located?",
+        "intent": "low",
+        "icon": "📍"
+      },
+      {
+        "label": { "en": "📞 Contact", "ta": "📞 தொடர்பு" },
+        "value": "How can I contact you?",
+        "intent": "low",
+        "icon": "📞"
+      },
+      {
+        "label": { "en": "👨‍⚕️ Doctors", "ta": "👨‍⚕️ மருத்துவர்கள்" },
+        "value": "Tell me about your doctors",
+        "intent": "medium",
+        "icon": "👨‍⚕️"
+      }
+    ]
+  },
   "quickReplies": [
     {
       "label": { "en": "📅 Book Appointment", "ta": "📅 சந்திப்பு" },
-      "value": "I want to book an appointment"
+      "value": "I want to book an appointment",
+      "intent": "high"
     },
     {
       "label": { "en": "💰 Pricing Info", "ta": "💰 விலை தகவல்" },
-      "value": "What are your prices?"
+      "value": "What are your prices?",
+      "intent": "high"
     },
     {
       "label": { "en": "🕐 Working Hours", "ta": "🕐 நேரம்" },
-      "value": "What are your working hours?"
+      "value": "What are your working hours?",
+      "intent": "low"
     },
     {
       "label": { "en": "📍 Location", "ta": "📍 இருப்பிடம்" },
-      "value": "Where are you located?"
+      "value": "Where are you located?",
+      "intent": "low"
     }
   ],
   "labels": {
@@ -47,7 +146,9 @@
       "emailLabel": "Email (optional)",
       "submitLead": "Submit",
       "thankYou": "Thank you! We'll be in touch soon.",
-      "close": "Close"
+      "close": "Close",
+      "outsideHours": "We're currently closed. Leave your details and we'll call you back during business hours.",
+      "welcomeBack": "Welcome back! Let's continue where we left off."
     },
     "ta": {
       "placeholder": "உங்கள் செய்தியை தட்டச்சு செய்யுங்கள்...",
@@ -62,7 +163,9 @@
       "emailLabel": "மின்னஞ்சல் (விருப்பமானது)",
       "submitLead": "சமர்ப்பி",
       "thankYou": "நன்றி! விரைவில் தொடர்பு கொள்வோம்.",
-      "close": "மூடு"
+      "close": "மூடு",
+      "outsideHours": "தற்போது மூடப்பட்டுள்ளது. உங்கள் விவரங்களை விடுங்கள், வணிக நேரத்தில் மீண்டும் அழைப்போம்.",
+      "welcomeBack": "மீண்டும் வருக! நாம் விட்ட இடத்திலிருந்து தொடருவோம்."
     }
   }
 }

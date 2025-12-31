@@ -1,20 +1,19 @@
 import { useEffect, useRef } from 'react';
-import type { Message, QuickReply, Attachment } from '@/types/chat';
+import type { Message, QuickReply, Attachment, FeatureToggles } from '@/types/chat';
 import { cn } from '@/lib/utils';
 import { TypingIndicator } from './TypingIndicator';
 import { QuickReplies } from './QuickReplies';
-import { FileText, Image } from 'lucide-react';
+import { MessageStatus } from './MessageStatus';
+import { MessageReactions } from './MessageReactions';
+import { FileText } from 'lucide-react';
 
 interface MessageListProps {
   messages: Message[];
   isTyping: boolean;
   lang: 'en' | 'ta';
+  features?: FeatureToggles;
   onQuickReply: (value: string) => void;
-}
-
-function getLocalizedText(text: any, lang: 'en' | 'ta'): string {
-  if (typeof text === 'string') return text;
-  return text[lang] || text.en;
+  onReaction?: (messageId: string, emoji: string) => void;
 }
 
 function AttachmentPreview({ attachment }: { attachment: Attachment }) {
@@ -55,17 +54,21 @@ function AttachmentPreview({ attachment }: { attachment: Attachment }) {
   );
 }
 
-export function MessageList({ messages, isTyping, lang, onQuickReply }: MessageListProps) {
+function formatTime(date: Date): string {
+  return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+export function MessageList({ messages, isTyping, lang, features, onQuickReply, onReaction }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Get the last bot message's quick replies (only show for the most recent bot message)
   const lastBotMessage = [...messages].reverse().find(m => m.role === 'bot');
   const showQuickReplies = lastBotMessage?.quickReplies && 
-    messages[messages.length - 1]?.role === 'bot';
+    messages[messages.length - 1]?.role === 'bot' &&
+    features?.enableQuickReplies !== false;
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3 chat-scrollbar">
@@ -73,27 +76,52 @@ export function MessageList({ messages, isTyping, lang, onQuickReply }: MessageL
         <div
           key={message.id}
           className={cn(
-            "flex animate-message-appear",
+            "flex animate-message-appear group",
             message.role === 'user' ? "justify-end" : "justify-start"
           )}
         >
-          <div
-            className={cn(
-              "max-w-[80%] px-4 py-2.5 text-sm leading-relaxed",
-              message.role === 'user'
-                ? "chat-bubble-user"
-                : "chat-bubble-bot"
-            )}
-          >
-            <div className="whitespace-pre-wrap">{message.content}</div>
+          <div className="flex flex-col max-w-[80%]">
+            <div
+              className={cn(
+                "px-4 py-2.5 text-sm leading-relaxed",
+                message.role === 'user'
+                  ? "chat-bubble-user"
+                  : "chat-bubble-bot"
+              )}
+            >
+              <div className="whitespace-pre-wrap">{message.content}</div>
+              
+              {message.attachments && message.attachments.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {message.attachments.map(attachment => (
+                    <AttachmentPreview key={attachment.id} attachment={attachment} />
+                  ))}
+                </div>
+              )}
+            </div>
             
-            {/* Attachments */}
-            {message.attachments && message.attachments.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {message.attachments.map(attachment => (
-                  <AttachmentPreview key={attachment.id} attachment={attachment} />
-                ))}
-              </div>
+            {/* Message footer with time and status */}
+            <div className={cn(
+              "flex items-center gap-1.5 mt-0.5 px-1",
+              message.role === 'user' ? "justify-end" : "justify-start"
+            )}>
+              <span className="text-[10px] text-muted-foreground">
+                {formatTime(message.timestamp)}
+              </span>
+              
+              {message.role === 'user' && message.status && features?.enableReadReceipts && (
+                <MessageStatus status={message.status} />
+              )}
+            </div>
+
+            {/* Reactions for bot messages */}
+            {message.role === 'bot' && features?.enableReactions && onReaction && (
+              <MessageReactions
+                messageId={message.id}
+                reactions={message.reactions}
+                onReact={onReaction}
+                showPicker
+              />
             )}
           </div>
         </div>

@@ -4,7 +4,7 @@ import { ChatHeader } from './ChatHeader';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { ConsentPrompt } from './ConsentPrompt';
-import type { Message, Labels, ChatState, Attachment } from '@/types/chat';
+import type { Message, Labels, ChatState, Attachment, FeatureToggles } from '@/types/chat';
 
 interface ChatWindowProps {
   isOpen: boolean;
@@ -18,12 +18,14 @@ interface ChatWindowProps {
   enableTamil: boolean;
   position?: 'bottom-right' | 'bottom-left';
   isMuted?: boolean;
+  features?: FeatureToggles;
   onClose: () => void;
   onSendMessage: (message: string, attachments?: Attachment[]) => void;
   onConsent: (agreed: boolean) => void;
   onToggleLanguage: () => void;
   onToggleMute?: () => void;
   onClearChat?: () => void;
+  onReaction?: (messageId: string, emoji: string) => void;
   onInit: () => void;
 }
 
@@ -39,12 +41,14 @@ export function ChatWindow({
   enableTamil,
   position = 'bottom-right',
   isMuted = false,
+  features,
   onClose,
   onSendMessage,
   onConsent,
   onToggleLanguage,
   onToggleMute,
   onClearChat,
+  onReaction,
   onInit
 }: ChatWindowProps) {
   useEffect(() => {
@@ -88,7 +92,9 @@ export function ChatWindow({
         messages={messages} 
         isTyping={isTyping} 
         lang={currentLang}
+        features={features}
         onQuickReply={(value) => onSendMessage(value)}
+        onReaction={onReaction}
       />
       
       {showConsentPrompt ? (
@@ -102,10 +108,10 @@ export function ChatWindow({
           onSend={onSendMessage}
           labels={labels}
           disabled={inputDisabled}
+          features={features}
         />
       )}
       
-      {/* Powered by footer */}
       <div className="px-4 py-2 text-center border-t border-border bg-muted/30">
         <p className="text-[10px] text-muted-foreground">
           {labels?.poweredBy || 'Powered by Sirah SmartChat'}

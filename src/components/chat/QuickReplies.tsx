@@ -1,4 +1,4 @@
-import type { QuickReply, LocalizedString } from '@/types/chat';
+import type { QuickReply, LocalizedString, IntentLevel } from '@/types/chat';
 import { cn } from '@/lib/utils';
 
 interface QuickRepliesProps {
@@ -23,11 +23,13 @@ export function QuickReplies({ replies, lang, onSelect }: QuickRepliesProps) {
           onClick={() => onSelect(reply.value)}
           className={cn(
             "px-3 py-1.5 text-xs font-medium",
-            "bg-primary/10 hover:bg-primary/20",
-            "text-primary border border-primary/20",
             "rounded-full transition-all duration-200",
             "hover:scale-105 active:scale-95",
-            "focus:outline-none focus:ring-2 focus:ring-primary/30"
+            "focus:outline-none focus:ring-2 focus:ring-primary/30",
+            // High intent buttons get prominent styling
+            reply.intent === 'high' 
+              ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm" 
+              : "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20"
           )}
         >
           {getLocalizedText(reply.label, lang)}
