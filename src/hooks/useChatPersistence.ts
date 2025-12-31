@@ -11,6 +11,7 @@ interface StoredChatData {
     role: 'user' | 'bot';
     content: string;
     timestamp: string;
+    quickReplies?: any[];
   }>;
   chatState: ChatState;
   pendingLead: Partial<LeadData>;
@@ -65,7 +66,8 @@ export function useChatPersistence(businessName?: string) {
           id: m.id,
           role: m.role,
           content: m.content,
-          timestamp: m.timestamp.toISOString()
+          timestamp: m.timestamp.toISOString(),
+          quickReplies: m.quickReplies
         })),
         chatState,
         pendingLead,
@@ -86,7 +88,8 @@ export function useChatPersistence(businessName?: string) {
   const parseStoredMessages = useCallback((stored: StoredChatData): Message[] => {
     return stored.messages.map(m => ({
       ...m,
-      timestamp: new Date(m.timestamp)
+      timestamp: new Date(m.timestamp),
+      quickReplies: m.quickReplies
     }));
   }, []);
 
