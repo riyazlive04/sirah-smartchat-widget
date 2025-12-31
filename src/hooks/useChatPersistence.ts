@@ -14,7 +14,7 @@ interface StoredChatData {
   }>;
   chatState: ChatState;
   pendingLead: Partial<LeadData>;
-  leadField: 'name' | 'phone' | 'email' | null;
+  leadField: 'qualifying' | 'name' | 'phone' | 'email' | null;
   lastUpdated: string;
 }
 
@@ -56,7 +56,7 @@ export function useChatPersistence(businessName?: string) {
     messages: Message[],
     chatState: ChatState,
     pendingLead: Partial<LeadData>,
-    leadField: 'name' | 'phone' | 'email' | null
+    leadField: 'qualifying' | 'name' | 'phone' | 'email' | null
   ) => {
     try {
       const data: StoredChatData = {
